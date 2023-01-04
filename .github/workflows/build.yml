@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: modelbox/modelbox-develop-tensorrt_8.4.2-cuda_11.2-ubuntu-x86_64
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+      - name: CMake
+        run: |
+          mkdir build
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        working-directory: build
+        run: |
+          make install -j8
+      - name: Prepare Artifact
+        run: |
+          mkdir artifact
+          cp -af /usr/local/lib/modelarts-client.so artifact/
+          cp -af /usr/local/lib/modelbox-modelarts-plugin.so artifact/
+          ls -lh artifact
+      - name: Upload Artifact
+        uses: actions/upload-artifact@main
+        with:
+          name: modelbox-modelarts-plugin
+          path: artifact
